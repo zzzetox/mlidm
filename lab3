@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct Pair {
+    char left_el;
+    char right_el;
+};
+
+struct Symbol {
+    char sym;
+}; 
+
+void fillSet(vector<Symbol>& set, int count) {
+    Symbol item;
+    cout << "Введите элементы множества: ";
+    for (int i = 0; i < count; i++) {
+        cin >> item.sym;
+        set.push_back(item);
+    }
+}
+
+void getRelations(vector<Pair>& relations, vector<Symbol>& setA, vector<Symbol>& setB, int relationCount, int sizeA, int sizeB) {
+    Pair current;
+    cout << "Введите пары отношений в формате x,y:" << endl;
+
+    for (int i = 0; i < relationCount; i++) {
+        bool validFirst = false;
+        bool validSecond = false;
+        char left, right, comma;
+
+        cin >> left >> comma >> right;
+
+        if (comma != ',') {
+            cout << "Ошибка: используйте формат x,y. Повторите ввод." << endl;
+            i--;
+            continue;
+        }
+
+        for (int j = 0; j < sizeA; j++) {
+            if (left == setA[j].sym) {
+                validFirst = true;
+                break;
+            }
+        }
+
+        for (int j = 0; j < sizeB; j++) {
+            if (right == setB[j].sym) {
+                validSecond = true;
+                break;
+            }
+        }
+
+        if (validFirst && validSecond) {
+            current.left_el = left;
+            current.right_el = right;
+            relations.push_back(current);
+        }
+        else {
+            cout << "Ошибка: недопустимая пара. Повторите ввод." << endl;
+            i--;
+        }
+    }
+}
+
+void checkFunctionality(vector<Symbol>& domain, vector<Pair>& mappings, int domainSize, int relationCount) {
+    bool isFunction = true;
+
+    for (int i = 0; i < domainSize; i++) {
+        int matches = 0;
+        for (int j = 0; j < relationCount; j++) {
+            if (domain[i].sym == mappings[j].left_el) {
+                matches++;
+            }
+        }
+
+        if (matches != 1) {
+            isFunction = false;
+            break;
+        }
+    }
+
+    if (isFunction) {
+        cout << "Данное отношение является функцией." << endl;
+    }
+    else {
+        cout << "Данное отношение не является функцией." << endl;
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    vector<Pair> relationSet;
+    vector<Symbol> firstSet;
+    vector<Symbol> secondSet;
+
+    int firstSize, secondSize, relationSize;
+
+    cout << "Укажите количество элементов в области определения: ";
+    cin >> firstSize;
+    fillSet(firstSet, firstSize);
+
+    cout << "Укажите количество элементов в области значений: ";
+    cin >> secondSize;
+    fillSet(secondSet, secondSize);
+
+    cout << "Введите количество пар в отношении: ";
+    cin >> relationSize;
+    getRelations(relationSet, firstSet, secondSet, relationSize, firstSize, secondSize);
+
+    checkFunctionality(firstSet, relationSet, firstSize, relationSize);
+
+    return 0;
+}
