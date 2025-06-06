@@ -1,0 +1,248 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <locale.h>
+
+typedef struct {
+    char j;     // Первый - нечетная цифра (1,3,5,7,9)
+    char c;     // Второй - любая цифра (0-9)
+    char i;     // Третий - четная цифра (0,2,4,6,8)
+    char b;     // Четвертый - буква (a-z)
+} Element;
+
+int isValidElement(const char* input) {
+    if (strlen(input) != 4) return 0;
+    if (!isdigit(input[0]) || (input[0] - '0') % 2 == 0) return 0;
+    if (!isdigit(input[1])) return 0;
+    if (!isdigit(input[2]) || (input[2] - '0') % 2 != 0) return 0;
+    if (!isalpha(input[3]) || !islower(input[3])) return 0;
+    return 1;
+}
+
+void inputArray(Element* mass, int size) {
+    char input[5]; 
+
+    for (int i = 0; i < size; ++i) {
+        printf("Input Element %d (формат: j c i b, где j-нечетная цифра, c-цифра, i-четная цифра, b-буква): ", i + 1);
+        scanf("%4s", input);
+        if (isValidElement(input)) {
+            mass[i].j = input[0];
+            mass[i].c = input[1];
+            mass[i].i = input[2];
+            mass[i].b = input[3];
+        }
+    }
+}
+
+void printArray(Element* mass, int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%c%c%c%c ", mass[i].j, mass[i].c, mass[i].i, mass[i].b);
+    }
+    printf("\n");
+}
+
+int areElementsEqual(const Element* a, const Element* b) {
+    return a->j == b->j && a->c == b->c && a->i == b->i && a->b == b->b;
+}
+
+// Функция нахождения пересечения
+void findIntersection(Element* result, int* resultSize, Element* mass1, int size1, Element* mass2, int size2) {
+    *resultSize = 0;
+
+    for (int i = 0; i < size1; i++) {
+        for (int j = 0; j < size2; j++) {
+            if (areElementsEqual(&mass1[i], &mass2[j])) {
+                // Проверяем, нет ли уже этого элемента в результате
+                int alreadyExists = 0;
+                for (int k = 0; k < *resultSize; k++) {
+                    if (areElementsEqual(&mass1[i], &result[k])) {
+                        alreadyExists = 1;
+                        break;
+                    }
+                }
+
+                if (!alreadyExists) {
+                    result[*resultSize] = mass1[i];
+                    (*resultSize)++;
+                }
+                break;
+            }
+        }
+    }
+}
+
+// Функция для нахождения разности A/B
+void differenceAB(Element* result, int* resultSize, Element* massA, int sizeA, Element* massB, int sizeB) {
+    *resultSize = 0;
+
+    for (int i = 0; i < sizeA; i++) {
+        int foundInB = 0;
+
+        for (int j = 0; j < sizeB; j++) {
+            if (areElementsEqual(&massA[i], &massB[j])) {
+                foundInB = 1;
+                break;
+            }
+        }
+
+        if (!foundInB) {
+            // Проверяем, нет ли уже этого элемента в результате
+            int alreadyExists = 0;
+            for (int k = 0; k < *resultSize; k++) {
+                if (areElementsEqual(&massA[i], &result[k])) {
+                    alreadyExists = 1;
+                    break;
+                }
+            }
+
+            if (!alreadyExists) {
+                result[*resultSize] = massA[i];
+                (*resultSize)++;
+            }
+        }
+    }
+}
+
+// Функция для нахождения симметрической разности
+void symmetricDifference(Element* result, int* resultSize, Element* massA, int sizeA, Element* massB, int sizeB) {
+    Element temp1[100], temp2[100];
+    int size1, size2;
+
+    // A/B
+    differenceAB(temp1, &size1, massA, sizeA, massB, sizeB);
+    // B/A
+    differenceAB(temp2, &size2, massB, sizeB, massA, sizeA);
+
+    // Объединяем результаты
+    *resultSize = 0;
+    for (int i = 0; i < size1; i++) {
+        result[*resultSize] = temp1[i];
+        (*resultSize)++;
+    }
+    for (int i = 0; i < size2; i++) {
+        // Проверяем, нет ли уже этого элемента в результате
+        int alreadyExists = 0;
+        for (int k = 0; k < *resultSize; k++) {
+            if (areElementsEqual(&temp2[i], &result[k])) {
+                alreadyExists = 1;
+                break;
+            }
+        }
+
+        if (!alreadyExists) {
+            result[*resultSize] = temp2[i];
+            (*resultSize)++;
+        }
+    }
+}
+
+// Функция для удаления дубликатов
+int removeDuplicates(Element* mass, int size) {
+    if (size == 0) return 0;
+
+    int newSize = 1;
+    for (int i = 1; i < size; i++) {
+        int isDuplicate = 0;
+        for (int j = 0; j < newSize; j++) {
+            if (areElementsEqual(&mass[i], &mass[j])) {
+                isDuplicate = 1;
+                break;
+            }
+        }
+
+        if (!isDuplicate) {
+            mass[newSize] = mass[i];
+            newSize++;
+        }
+    }
+
+    return newSize;
+}
+
+// Функция для объединения двух массивов
+void unionArrays(Element* result, int* resultSize, Element* mass1, int size1, Element* mass2, int size2) {
+    *resultSize = 0;
+
+    // Копируем все элементы из первого массива
+    for (int i = 0; i < size1; i++) {
+        result[*resultSize] = mass1[i];
+        (*resultSize)++;
+    }
+
+    // Добавляем элементы из второго массива, которых нет в первом
+    for (int i = 0; i < size2; i++) {
+        int found = 0;
+        for (int j = 0; j < size1; j++) {
+            if (areElementsEqual(&mass2[i], &mass1[j])) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            result[*resultSize] = mass2[i];
+            (*resultSize)++;
+        }
+    }
+}
+
+int main() {
+    int size1, size2;
+    setlocale(LC_ALL, "Russian");
+    printf("Введите размер первого множества: ");
+    scanf("%d", &size1);
+    Element* mass1 = (Element*)malloc(size1 * sizeof(Element));
+    inputArray(mass1, size1);
+
+    printf("\nВведите размер второго множества: ");
+    scanf("%d", &size2);
+    Element* mass2 = (Element*)malloc(size2 * sizeof(Element));
+    inputArray(mass2, size2);
+
+    // Удаляем дубликаты в каждом множестве
+    size1 = removeDuplicates(mass1, size1);
+    size2 = removeDuplicates(mass2, size2);
+
+    printf("\nПервое множество (без дубликатов): ");
+    printArray(mass1, size1);
+
+    printf("Второе множество (без дубликатов): ");
+    printArray(mass2, size2);
+
+    // Операции над множествами
+    Element result[100];
+    int resultSize;
+
+    // 1. Объединение
+    unionArrays(result, &resultSize, mass1, size1, mass2, size2);
+    printf("\nОбъединение A ∪ B: ");
+    printArray(result, resultSize);
+
+    // 2. Пересечение
+    findIntersection(result, &resultSize, mass1, size1, mass2, size2);
+    printf("Пересечение A ∩ B: ");
+    printArray(result, resultSize);
+
+    // 3. Разность A/B
+    differenceAB(result, &resultSize, mass1, size1, mass2, size2);
+    printf("Разность A \\ B: ");
+    printArray(result, resultSize);
+
+    // 4. Разность B/A
+    differenceAB(result, &resultSize, mass2, size2, mass1, size1);
+    printf("Разность B \\ A: ");
+    printArray(result, resultSize);
+
+    // 5. Симметрическая разность
+    symmetricDifference(result, &resultSize, mass1, size1, mass2, size2);
+    printf("Симметрическая разность A △ B: ");
+    printArray(result, resultSize);
+
+    // Освобождение памяти
+    free(mass1);
+    free(mass2);
+
+    return 0;
+}
