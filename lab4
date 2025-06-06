@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <limits.h>
+#include <locale.h>
+#define SIZE 100  
+int main() {
+    setlocale(LC_ALL, "Russian");
+    int roads[SIZE][SIZE];  
+    int nodeCount;          
+    int connectionCount;    
+    int start, finish; 
+
+    printf("Введите количество узлов: ");
+    scanf_s("%d", &nodeCount);
+
+    for (int i = 0; i < nodeCount; i++) {
+        for (int j = 0; j < nodeCount; j++) {
+            roads[i][j] = 0;
+        }
+    }
+
+    printf("Введите количество соединений: ");
+    scanf_s("%d", &connectionCount);
+
+    printf("Введите соединения (источник, назначение, стоимость):\n");
+    for (int i = 0; i < connectionCount; i++) {
+        int from, to, cost;
+        scanf_s("%d %d %d", &from, &to, &cost);
+        roads[from][to] = cost;
+    }
+
+    printf("Введите начальный и конечный узел: ");
+    scanf_s("%d %d", &start, &finish);
+
+    // Алгоритм Дейкстры
+    int distance[SIZE];   
+    int visited[SIZE] = { 0 };
+    int previous[SIZE];     
+    for (int i = 0; i < nodeCount; i++) {
+        distance[i] = INT_MAX; 
+        previous[i] = -1;    
+    }
+    distance[start] = 0;     
+
+    for (int step = 0; step < nodeCount; step++) {
+        int current = -1;
+        int minDist = INT_MAX;
+
+        for (int i = 0; i < nodeCount; i++) {
+            if (!visited[i] && distance[i] < minDist) {
+                minDist = distance[i];
+                current = i;
+            }
+        }
+        if (current == -1 || current == finish) break;
+        visited[current] = 1;
+
+        for (int neighbour = 0; neighbour < nodeCount; neighbour++) {
+            if (roads[current][neighbour] > 0) {  
+                int newDist = distance[current] + roads[current][neighbour];
+                if (newDist < distance[neighbour]) {
+                    distance[neighbour] = newDist;
+                    previous[neighbour] = current;
+                }
+            }
+        }
+    }
+
+    int path[SIZE];
+    int pathLength = 0;
+    for (int node = finish; node != -1; node = previous[node]) {
+        path[pathLength++] = node;
+    }
+
+    printf("Кратчайший путь от %d до %d: ", start, finish);
+    for (int i = pathLength - 1; i >= 0; i--) {
+        printf("%d ", path[i]);
+    }
+    printf("\nОбщая стоимость пути: %d\n", distance[finish]);
+
+    return 0;
+}
