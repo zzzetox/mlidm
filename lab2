@@ -1,0 +1,123 @@
+#include <locale.h>
+#include <stdio.h>
+#define MAX 100 
+
+int reflexivity(int matrix[MAX][MAX], int size) {
+    int i = 0;
+    while (i < size) {
+        if (matrix[i][i] != 1) {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
+int symmetry(int matrix[MAX][MAX], int size) {
+    int i = 0;
+    while (i < size) {
+        int j = 0;
+        while (j < size) {
+            if (matrix[i][j] != matrix[j][i]) {
+                return 0;
+            }
+            j++;
+        }
+        i++;
+    }
+    return 1;
+}
+
+int kosоsymmetry(int matrix[MAX][MAX], int size) {
+    int i = 0;
+    while (i < size) {
+        int j = 0;
+        while (j < size) {
+            if ((matrix[i][j] == 1 && matrix[j][i] == 1 && i != j)) {
+                return 0;
+            }
+            j++;
+        }
+        i++;
+    }
+    return 1;
+}
+
+int transitivity(int matrix[MAX][MAX], int size) {
+    int i = 0;
+    while (i < size) {
+        int j = 0;
+        while (j < size) {
+            if (matrix[i][j] == matrix[j][i]) {
+                int k = 0;
+                while (k < size) {
+                    if (matrix[i][j] == 1 && matrix[j][k] == 1 && matrix[i][k] == 0) {
+                        return 0;
+                    }
+                    k++;
+                }
+            }
+            j++;
+        }
+        i++;
+    }
+    return 1;
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    int size = 0;
+    int matrix[MAX][MAX] = { 0 };
+
+    printf("Введите размер массива: ");
+    if (scanf_s("%d", &size) != 1) {
+        return 1;
+    }
+
+    printf("Введите элементы массива: \n");
+    int i = 0;
+    while (i < size) {
+        int j = 0;
+        while (j < size) {
+            scanf_s("%d", &matrix[i][j]);
+
+            if (matrix[i][j] != 1 && matrix[i][j] != 0) {
+                printf("Нужно вводить 1 или 0\n");
+                return 1;
+            }
+            j++;
+        }
+        i++;
+    }
+
+    if (reflexivity(matrix, size)) {
+        printf("Отношение рефлексивно\n");
+    }
+    else {
+        printf("Отношение не рефлексивно\n");
+    }
+
+    if (symmetry(matrix, size)) {
+        printf("Отношение симметрично\n");
+    }
+    else {
+        printf("Отношение не симметрично\n");
+    }
+
+    if (kosоsymmetry(matrix, size)) {
+        printf("Отношение кососиметрично\n");
+    }
+    else {
+        printf("Отношение не кососиметрично\n");
+    }
+
+    if (transitivity(matrix, size)) {
+        printf("Отношение транзитивно\n");
+    }
+    else {
+        printf("Отношение не транзитивно\n");
+    }
+
+    return 0;
+}
